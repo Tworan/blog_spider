@@ -4,6 +4,7 @@
 # https://docs.scrapy.org/en/latest/topics/items.html
 from peewee import *
 import scrapy
+from scrapy_djangoitem import DjangoItem
 
 db = MySQLDatabase("test", host='120.55.64.125', port=25565, user='blog_spider', passwd='123456', charset='utf-8')
 class SearchboxItem(scrapy.Item):
