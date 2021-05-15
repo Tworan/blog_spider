@@ -19,7 +19,7 @@ class BlogspiderItem(scrapy.Item):
     description: 用户描述
     verified_reason: 个人认证
     '''
-    text = scrapy.Field(serializer=str)
+    text = scrapy.Field(serializer=list)
     follows_counts = scrapy.Field(serializer=str)
     description = scrapy.Field(serializer=str)
     verified_reason = scrapy.Field(serializer=str)
@@ -29,17 +29,8 @@ class BlogUser(Model):
     verified_reason = CharField(verbose_name="verified_reason", max_length=100, null=False)
     follows_counts = CharField(verbose_name="follows_counts", max_length=10, null=False)
     description = CharField(verbose_name="description", max_length=100, null=False)
-
-    class Meta:
-        database = db
-        # table_function = make_table_name
-
-class Activation(Model):
     text = CharField(verbose_name="text", max_length=10000, null=False)
 
     class Meta:
         database = db
-
-class BlogUserToAct(Model):
-    uid = ForeignKeyField(BlogUser, to_field='id', on_delete=CASCADE)
-    text = ForeignKeyField(Activation, to_field='text', on_delete=CASCADE)
+        # table_function = make_table_name

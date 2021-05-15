@@ -1,5 +1,5 @@
-from typing import Text
-import scrapy, json, sys, requests, re, os
+
+import scrapy, json, sys, re, os
 from peewee import *
 from urllib.parse import urlencode
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -9,20 +9,25 @@ db = MySQLDatabase("test", host='120.55.64.125', port=25565, user='blog_spider',
 class BaseModel(Model):
     class Meta:
         database = db
-        table_name = 'bloguserall'
 
 class bloguser(BaseModel):
     # BlogUser_id = TextField(column_name='name')
     id = TextField()
     name = TextField(column_name='name')
 
-    def get_name(self):
-        all = self.select()
-        user = []
-        for i in all:
-            user.append(i.name)
-        
-        return user
+    class Meta:
+        table_name = 'bloguserall'
+
+
+def get_name():
+    all = self.select(bloguser.name)
+    user = []
+    print(all)
+    for i in all:
+        print(i.get())
+        user.append(i)
+    
+    return user
 
 class BlogSpider(scrapy.Spider):
     
@@ -32,15 +37,16 @@ class BlogSpider(scrapy.Spider):
 
     搜索接口: https://m.weibo.cn/api/container/getIndex?containerid=100103type%3D1%26q%3D[想要搜索的内容]&page_type=searchall
     '''
-    temp = bloguser()
 
     print('---------------------------------------------------------------------------------------------------------------')
     name = 'bs'
-    ID = temp.get_name()
-
+    ID = [i.name for i in bloguser.select()]
+    print(ID)
     #* ~%3D ID &page_~
     start_urls = ['https://m.weibo.cn/api/container' + \
                   '/getIndex?containerid=100103type%3D1%26q%3D' + str(id) + '&page_type=searchall' for id in ID]
+    # start_urls = ['https://m.weibo.cn/api/container' + \
+    #             '/getIndex?containerid=100103type%3D1%26q%3D' + '中南大学' + '&page_type=searchall', ]
     month = {
         'Jan': '01',
         'Feb': '02',
@@ -85,14 +91,15 @@ class BlogSpider(scrapy.Spider):
     def get_text(self, response):
         blog_items = BlogspiderItem()
         response_json_format = json.loads(response.text)
-        final_text = ''
+        final_text = []
         #* 8为获取的条数
         for i in range(10):
             # print(json.loads(response.text)['data']['cards'][i]['mblog']['text'])
             temp_text = response_json_format['data']['cards'][i]['mblog']['text']
             temp_time = response_json_format['data']['cards'][i]['mblog']['created_at'].split(' ')
             time = temp_time[5] + '-' + self.month[temp_time[1]] + '-' + temp_time[2]
-            final_text = final_text + re.sub('<.*?>', '', temp_text) + '//' + time + '//@@//'
+            final_text.append(re.sub('<.*?>', '', temp_text) + '//' + time)
+
         blog_items['potential_followings'] = self.relevant_uid
         blog_items['follows_counts'] = response_json_format['data']['cards'][0]['mblog']['user']['followers_count']
         blog_items['description'] = response_json_format['data']['cards'][0]['mblog']['user']['description']

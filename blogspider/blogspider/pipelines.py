@@ -6,20 +6,12 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
-from .items import Activation, BlogUser, BlogUserToAct
+from .items import BlogUser
 
 class BlogspiderPipeline:
     def process_item(self, item, spider):
         if BlogUser.table_exists() == False:
             BlogUser.create_table()
-        BlogUser.create(verified_reason=item['verified_reason'], follows_counts=item['follows_counts'], description=item['description'])
+        BlogUser.create(verified_reason=item['verified_reason'], follows_counts=item['follows_counts'], description=item['description'], text=item['text'])
         
-        if Activation.table_exists() == False:
-            Activation.create_table()
-        Activation.create(text=item['text'])
-
-        if BlogUserToAct.table_exists() == False:
-            BlogUserToAct.create_table()
-        BlogUserToAct.create()
-
         return item
